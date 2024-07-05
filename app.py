@@ -1,10 +1,9 @@
 from flask import Flask, request, render_template
-from sympy import symbols, Eq, solve, parse_expr, simplify, SympifyError
+from sympy import symbols, Eq, solve, parse_expr, SympifyError
 from sympy.plotting import plot
 import matplotlib.pyplot as plt
-import re
-import time
 import os
+import re  # Import the re module for regex operations
 
 # Set the backend to 'Agg' for non-GUI rendering
 plt.switch_backend('Agg')
@@ -12,7 +11,8 @@ plt.switch_backend('Agg')
 app = Flask(__name__)
 
 def parse_equation(equation_str):
-    equation_str = equation_str.replace('^', '**')
+    # Replace '^' with '**' and handle spaces around operators
+    equation_str = equation_str.replace('^', '**').replace(' ', '')
     return equation_str
 
 def identify_equation_type(equation_str):
@@ -47,10 +47,13 @@ def solve_equation(equation_str, plot_graph=False):
         else:
             eq = Eq(parsed_eq, 0)
 
-        eq = Eq(eq.lhs - eq.rhs, 0)
+        # Solve the equation
         solution = solve(eq, x)
 
+        # Plot graph if required
         if plot_graph:
+            if not os.path.exists('static'):
+                os.makedirs('static')
             p = plot(eq.lhs, (x, -10, 10), show=False)
             p.save(os.path.join('static', 'graph.png'))
 
@@ -75,4 +78,4 @@ def index():
     return render_template('index.html', result=result, graph=graph)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')

@@ -1,20 +1,40 @@
 from flask import Flask, request, render_template
-from sympy import symbols, Eq, solve, parse_expr, SympifyError
+from sympy import symbols, Eq, solve, parse_expr, simplify, SympifyError
 from sympy.plotting import plot
-import os
-import re
-
-# Set matplotlib backend to 'Agg' for non-GUI environment
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import re
+import time
+import os
+
+# Set the backend to 'Agg' for non-GUI rendering
+plt.switch_backend('Agg')
 
 app = Flask(__name__)
 
 def parse_equation(equation_str):
-    # Replace '^' with '**' for exponentiation
     equation_str = equation_str.replace('^', '**')
     return equation_str
+
+def identify_equation_type(equation_str):
+    if any(func in equation_str for func in ['sin', 'cos', 'tan', 'cot', 'sec', 'csc']):
+        return 'trigonometric'
+    elif any(func in equation_str for func in ['exp']):
+        return 'exponential'
+    elif 'log' in equation_str:
+        return 'logarithmic'
+    elif any(char in equation_str for char in ['<', '>', '<=', '>=']):
+        return 'inequality'
+    elif equation_str.count('=') > 1:
+        return 'system'
+    elif re.search(r'\b(x|y|z)\b', equation_str):
+        highest_power = max([int(match.group(2)) if match.group(2) else 1 for match in re.finditer(r'([xyz])(\d*)', equation_str)])
+        if highest_power == 1:
+            return 'linear'
+        elif highest_power == 2:
+            return 'quadratic'
+        elif highest_power == 3:
+            return 'cubic'
+    return 'linear'
 
 def solve_equation(equation_str, plot_graph=False):
     x = symbols('x')
@@ -27,35 +47,32 @@ def solve_equation(equation_str, plot_graph=False):
         else:
             eq = Eq(parsed_eq, 0)
 
+        eq = Eq(eq.lhs - eq.rhs, 0)
         solution = solve(eq, x)
 
         if plot_graph:
-            # Plot and save the graph
             p = plot(eq.lhs, (x, -10, 10), show=False)
-            img_path = os.path.join('static', 'graph.png')
-            p.save(img_path)
-            graph_url = '/' + img_path  # Assuming static files are served from root
+            p.save(os.path.join('static', 'graph.png'))
 
-        else:
-            graph_url = None
-
-        return solution, graph_url
+        return solution
 
     except SympifyError as e:
-        return f"Error parsing or solving equation: {e}", None
+        return f"Error parsing or solving equation: {e}"
 
     except Exception as e:
-        return f"Error solving equation: {e}", None
+        return f"Error solving equation: {e}"
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     result = None
-    graph_url = None
+    graph = None
     if request.method == 'POST':
         equation_str = request.form.get('equation')
         plot_graph = 'plot_graph' in request.form
-        result, graph_url = solve_equation(equation_str, plot_graph)
-    return render_template('index.html', result=result, graph_url=graph_url)
+        result = solve_equation(equation_str, plot_graph)
+        if plot_graph:
+            graph = True
+    return render_template('index.html', result=result, graph=graph)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True)

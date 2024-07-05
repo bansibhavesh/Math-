@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Solver</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Math Solver</h1>
+        <form id="equation-form">
+            <div class="form-group">
+                <label for="equation">Enter an equation:</label>
+                <input type="text" class="form-control" id="equation" placeholder="e.g., x^2 - 4 = 0">
+            </div>
+            <div class="form-group">
+                <label for="plot-graph">Would you like to see the graph?</label>
+                <select class="form-control" id="plot-graph">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Solve</button>
+        </form>
+        <div id="result" class="mt-4">
+            <!-- Results will be displayed here -->
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#equation-form').on('submit', function(e) {
+                e.preventDefault();
+                let equation = $('#equation').val();
+                let plotGraph = $('#plot-graph').val();
+                // Display the entered equation and plotGraph choice
+                $('#result').html(`
+                    <h4>Entered Equation:</h4>
+                    <p>${equation}</p>
+                    <h4>Plot Graph:</h4>
+                    <p>${plotGraph}</p>
+                    <h4>Result:</h4>
+                    <p>Loading...</p>
+                `);
+                // Here you would typically send the equation and plotGraph choice to your server for processing
+                // Example:
+                // $.post('/solve', { equation: equation, plotGraph: plotGraph }, function(data) {
+                //     $('#result').html(data);
+                // });
+            });
+        });
+    </script>
+</body>
+</html>
